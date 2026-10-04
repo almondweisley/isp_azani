@@ -5,21 +5,25 @@
 -- Structure follows Azani_ISP_Project_Structure.docx.
 -- Figures and category names follow the SCO200 brief; no price lives in this file.
 
-CREATE DATABASE IF NOT EXISTS azani_db:
+CREATE DATABASE IF NOT EXISTS azani_db;
 USE azani_db;
+
+SET FOREIGN_KEY_CHEcKS = 0;
 
 DROP TABLE IF EXISTS disconnections;
 DROP TABLE IF EXISTS overdue_fines;
 DROP TABLE IF EXISTS payments;
-DROP TABLE IF EXISTS subsciptions;
+DROP TABLE IF EXISTS subscriptions;
 DROP TABLE IF EXISTS bandwidth_plans;
 DROP TABLE IF EXISTS installations;
 DROP TABLE IF EXISTS equipment_orders;
+DROP TABLE IF EXISTS upgrades;
 DROP TABLE IF EXISTS lan_node_tiers;
-DROP TABLE IF EXISTS readiness_assesments;
+DROP TABLE IF EXISTS readiness_assessments;
 DROP TABLE IF EXISTS contact_persons;
 DROP TABLE IF EXISTS institutions;
 
+SET FOREIGN_KEY_CHECKS = 1;
 
 CREATE TABLE institutions (
     institution_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -41,7 +45,7 @@ CREATE TABLE contact_persons (
     FOREIGN KEY (institution_id) REFERENCES institutions (institution_id)
 );
 
-CREATE TABLE readiness_assesments (
+CREATE TABLE readiness_assessments (
     assesment_id INT AUTO_INCREMENT PRIMARY KEY,
     institution_id INT NOT NULL,
     visit_date DATE NOT NULL,
@@ -67,10 +71,11 @@ CREATE TABLE equipment_orders (
     tier_id INT NOT NULL,
     computer_qty INT NOT NULL DEFAULT 0,
     computer_cost DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    lan_cost DECIMAL (10,2) NOT NULL DEFAULT 0.00,
     total_cost DECIMAL(10,2) NOT NULL,
     order_date DATE NOT NULL,
-    CONSTRAINT chk_computer_qty CHECK (computer_qty > 0),
-    FOREIGN KEY (institution_id) REFERENCES institutions(instituion_id),
+    CONSTRAINT chk_computer_qty CHECK (computer_qty >= 0),
+    FOREIGN KEY (institution_id) REFERENCES institutions(institution_id),
     FOREIGN KEY (tier_id) REFERENCES lan_node_tiers(tier_id) 
 );
 
@@ -79,7 +84,7 @@ CREATE TABLE installations (
     institution_id INT NOT NULL,
     fee DECIMAL(10,2) NOT NULL,
     installed_on DATE NOT NULL,
-    FOREIGN KEY (institution_id) REFERENCES institutions (institution_is)
+    FOREIGN KEY (institution_id) REFERENCES institutions (institution_id)
 );
 
 CREATE TABLE bandwidth_plans (
@@ -94,22 +99,22 @@ CREATE TABLE subscriptions (
     plan_id INT NOT NULL,
     start_date DATE NOT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'active',
-    CONSTRAINT chk_status CHECK (status IN ('active', 'disconnected')),
+    CONSTRAINT chk_sub_status CHECK (status IN ('active', 'disconnected')),
     FOREIGN KEY (institution_id) REFERENCES institutions (institution_id),
-    FOREIGN KEY (plain_id) REFERENCES bandwidth_plans (plain_id)
+    FOREIGN KEY (plan_id) REFERENCES bandwidth_plans (plan_id)
 );
 
 CREATE TABLE upgrades (
     upgrade_id INT AUTO_INCREMENT PRIMARY KEY,
-    subsciption_id INT NOT NULL,
+    subscription_id INT NOT NULL,
     old_plan_id INT NOT NULL,
     new_plan_id INT NOT NULL,
     discount_rate DECIMAL (10, 2) NOT NULL,
     upgraded_on DATE NOT NULL,
     CONSTRAINT chk_discount_rate CHECK (discount_rate > 0 AND discount_rate <= 1),
-    FOREIGN KEY (subscription_id) REFERENCES subscriptions (subsciption_id),
+    FOREIGN KEY (subscription_id) REFERENCES subscriptions (subscription_id),
     FOREIGN KEY (old_plan_id) REFERENCES bandwidth_plans(plan_id),
-    FOREIGN KEY (new_plan_id) REFERENCES bandwidth_plans(plan_id),
+    FOREIGN KEY (new_plan_id) REFERENCES bandwidth_plans(plan_id)
 );
 
 CREATE TABLE payments (
