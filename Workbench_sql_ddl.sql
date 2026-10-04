@@ -5,33 +5,31 @@
 -- Structure follows Azani_ISP_Project_Structure.docx.
 -- Figures and category names follow the SCO200 brief; no price lives in this file.
 
-CREATE DATABASE IF NOT EXISTS azani_db;
+CREATE DATABASE IF NOT EXISTS azani_db:
 USE azani_db;
 
--- Child tables first, so no foreign key blocks a drop.
 DROP TABLE IF EXISTS disconnections;
 DROP TABLE IF EXISTS overdue_fines;
 DROP TABLE IF EXISTS payments;
-DROP TABLE IF EXISTS upgrades;
-DROP TABLE IF EXISTS subscriptions;
+DROP TABLE IF EXISTS subsciptions;
 DROP TABLE IF EXISTS bandwidth_plans;
 DROP TABLE IF EXISTS installations;
 DROP TABLE IF EXISTS equipment_orders;
 DROP TABLE IF EXISTS lan_node_tiers;
-DROP TABLE IF EXISTS readiness_assessments;
+DROP TABLE IF EXISTS readiness_assesments;
 DROP TABLE IF EXISTS contact_persons;
 DROP TABLE IF EXISTS institutions;
 
--- Category names come from the brief: primary, junior, senior schools and colleges.
+
 CREATE TABLE institutions (
     institution_id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL UNIQUE,
     type VARCHAR(20) NOT NULL,
     address VARCHAR(150),
-    registered_on DATE NOT NULL DEFAULT (CURRENT_DATE),
+    registered_on DATE NOT NULL DEFAULT(CURRENT_DATE),
     status VARCHAR(20) NOT NULL DEFAULT 'active',
     CONSTRAINT chk_status CHECK (status IN ('active', 'inactive', 'suspended')),
-    CONSTRAINT chk_type CHECK (type IN ('primary', 'junior', 'senior', 'college'))
+    CONSTRAINT chk_type CHECK (type IN('primary', 'junior', 'senior', 'college'))
 );
 
 CREATE TABLE contact_persons (
@@ -43,9 +41,8 @@ CREATE TABLE contact_persons (
     FOREIGN KEY (institution_id) REFERENCES institutions (institution_id)
 );
 
--- The service sets is_ready to (has_computers AND has_lan); the database does not enforce it.
-CREATE TABLE readiness_assessments (
-    assessment_id INT AUTO_INCREMENT PRIMARY KEY,
+CREATE TABLE readiness_assesments (
+    assesment_id INT AUTO_INCREMENT PRIMARY KEY,
     institution_id INT NOT NULL,
     visit_date DATE NOT NULL,
     user_count INT NOT NULL,
@@ -53,31 +50,28 @@ CREATE TABLE readiness_assessments (
     has_lan BOOLEAN NOT NULL,
     is_ready BOOLEAN NOT NULL,
     CONSTRAINT chk_user_count CHECK (user_count > 0),
-    FOREIGN KEY (institution_id) REFERENCES institutions (institution_id)
+    FOREIGN KEY (institution_id) REFERENCES institutions (institution_id) 
 );
 
--- Price list from brief Table 2. Rows are loaded by the DML file.
 CREATE TABLE lan_node_tiers (
     tier_id INT AUTO_INCREMENT PRIMARY KEY,
     min_nodes INT NOT NULL,
     max_nodes INT NOT NULL,
-    cost DECIMAL(10,2) NOT NULL,
+    cost DECIMAL (10,2) NOT NULL,
     CONSTRAINT chk_node_range CHECK (min_nodes <= max_nodes)
 );
 
--- tier_id stays NULL when the institution buys computers only.
 CREATE TABLE equipment_orders (
     order_id INT AUTO_INCREMENT PRIMARY KEY,
     institution_id INT NOT NULL,
-    tier_id INT NULL,
+    tier_id INT NOT NULL,
     computer_qty INT NOT NULL DEFAULT 0,
     computer_cost DECIMAL(10,2) NOT NULL DEFAULT 0.00,
-    lan_cost DECIMAL(10,2) NOT NULL DEFAULT 0.00,
     total_cost DECIMAL(10,2) NOT NULL,
     order_date DATE NOT NULL,
-    CONSTRAINT chk_computer_qty CHECK (computer_qty >= 0),
-    FOREIGN KEY (institution_id) REFERENCES institutions (institution_id),
-    FOREIGN KEY (tier_id) REFERENCES lan_node_tiers (tier_id)
+    CONSTRAINT chk_computer_qty CHECK (computer_qty > 0),
+    FOREIGN KEY (institution_id) REFERENCES institutions(instituion_id),
+    FOREIGN KEY (tier_id) REFERENCES lan_node_tiers(tier_id) 
 );
 
 CREATE TABLE installations (
@@ -85,10 +79,9 @@ CREATE TABLE installations (
     institution_id INT NOT NULL,
     fee DECIMAL(10,2) NOT NULL,
     installed_on DATE NOT NULL,
-    FOREIGN KEY (institution_id) REFERENCES institutions (institution_id)
+    FOREIGN KEY (institution_id) REFERENCES institutions (institution_is)
 );
 
--- Price list from brief Table 1. Rows are loaded by the DML file.
 CREATE TABLE bandwidth_plans (
     plan_id INT AUTO_INCREMENT PRIMARY KEY,
     mbps INT NOT NULL UNIQUE,
@@ -101,25 +94,24 @@ CREATE TABLE subscriptions (
     plan_id INT NOT NULL,
     start_date DATE NOT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'active',
-    CONSTRAINT chk_sub_status CHECK (status IN ('active', 'disconnected')),
+    CONSTRAINT chk_status CHECK (status IN ('active', 'disconnected')),
     FOREIGN KEY (institution_id) REFERENCES institutions (institution_id),
-    FOREIGN KEY (plan_id) REFERENCES bandwidth_plans (plan_id)
+    FOREIGN KEY (plain_id) REFERENCES bandwidth_plans (plain_id)
 );
 
 CREATE TABLE upgrades (
     upgrade_id INT AUTO_INCREMENT PRIMARY KEY,
-    subscription_id INT NOT NULL,
+    subsciption_id INT NOT NULL,
     old_plan_id INT NOT NULL,
     new_plan_id INT NOT NULL,
-    discount_rate DECIMAL(4,2) NOT NULL,
+    discount_rate DECIMAL (10, 2) NOT NULL,
     upgraded_on DATE NOT NULL,
-    CONSTRAINT chk_discount_rate CHECK (discount_rate >= 0 AND discount_rate <= 1),
-    FOREIGN KEY (subscription_id) REFERENCES subscriptions (subscription_id),
-    FOREIGN KEY (old_plan_id) REFERENCES bandwidth_plans (plan_id),
-    FOREIGN KEY (new_plan_id) REFERENCES bandwidth_plans (plan_id)
+    CONSTRAINT chk_discount_rate CHECK (discount_rate > 0 AND discount_rate <= 1),
+    FOREIGN KEY (subscription_id) REFERENCES subscriptions (subsciption_id),
+    FOREIGN KEY (old_plan_id) REFERENCES bandwidth_plans(plan_id),
+    FOREIGN KEY (new_plan_id) REFERENCES bandwidth_plans(plan_id),
 );
 
--- One table for four payment types. A registration or installation payment has no billing month.
 CREATE TABLE payments (
     payment_id INT AUTO_INCREMENT PRIMARY KEY,
     institution_id INT NOT NULL,
@@ -156,3 +148,4 @@ CREATE TABLE disconnections (
 );
 
 SHOW TABLES;
+

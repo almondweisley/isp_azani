@@ -43,12 +43,7 @@ public class DBConnection {
         String user = CONFIG.getProperty("db.user");
         String pass = CONFIG.getProperty("db.password");
 
-        // Your own machine: the environment variable wins over the file
-        String envPass = System.getenv("AIVEN_DB_PASSWORD");
-        if (envPass != null && !envPass.isEmpty()) {
-            pass = envPass;
-        }
-
+        
         if (url == null || user == null || pass == null) {
             throw new SQLException("Database settings missing. Place db.properties "
                     + "in the project root and fill in db.url, db.user and db.password.");
