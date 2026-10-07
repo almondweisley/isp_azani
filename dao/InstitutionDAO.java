@@ -61,7 +61,7 @@ public class InstitutionDAO {
         conn.commit();
         inst.setInstitutionId(newId);
         return newId;
-    } catch (SQLException e) {
+    } catch (SQLException | RuntimeException e) {
         conn.rollback();
         throw e;    
             }

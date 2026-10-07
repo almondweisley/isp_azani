@@ -68,7 +68,7 @@ CREATE TABLE lan_node_tiers (
 CREATE TABLE equipment_orders (
     order_id INT AUTO_INCREMENT PRIMARY KEY,
     institution_id INT NOT NULL,
-    tier_id INT NOT NULL,
+    tier_id INT NULL,
     computer_qty INT NOT NULL DEFAULT 0,
     computer_cost DECIMAL(10,2) NOT NULL DEFAULT 0.00,
     lan_cost DECIMAL (10,2) NOT NULL DEFAULT 0.00,
