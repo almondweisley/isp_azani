@@ -13,6 +13,12 @@ public class RegistrationServiceTest {
         attempt(svc, "Another School", "university", "Kisumu", "John Doe", "0700000000", "");
         // 4. A blank name
         attempt(svc, "   ", "primary", "Kisumu", "John Doe", "0700000000", "");
+         // 5. A phone number with hyphens
+        attempt(svc, "Hill View School", "primary", "Nakuru", "Ann Mwangi", "0712-345-678", "");
+        // 6. An email address without @
+        attempt(svc, "Hill View School", "primary", "Nakuru", "Ann Mwangi", "0712345678", "ann.example.org");
+        // 7. A blank contact name
+        attempt(svc, "Hill View School", "primary", "Nakuru", "  ", "0712345678", "");
     }
 
     private static void attempt(RegistrationService svc, String name, String type, String address,
