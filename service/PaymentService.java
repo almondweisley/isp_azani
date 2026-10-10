@@ -74,6 +74,10 @@ public class PaymentService {
         if (billingMonth.isAfter(YearMonth.now())) {
             throw new ServiceException("The billing month cannot fall in the future.");
         }
+        // D1a: a late bill carries the fine, so BillingService must record it.
+        if (paidOn.isAfter(billingMonth.atEndOfMonth())) {
+            throw new ServiceException("This bill is late, so the 15 percent fine applies. Record it in the Billing form.");
+        }
         PaymentDAO.BillBasis basis = paymentDAO.findBillBasis(institutionId, billingMonth);
         if (basis == null) {
             throw new ServiceException("This institution has no subscription yet, so it owes no monthly bill.");
