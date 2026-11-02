@@ -4,8 +4,9 @@
 ;  build.bat runs this after jpackage has made dist\Azani ISP, so run
 ;  build.bat rather than this file. Needs Inno Setup 6 (winget install JRSoftware.InnoSetup).
 ;
-;  The setup installs the app with its own Java, plus the source code and the
-;  SQL scripts in a "source" folder, so a marker needs neither Java nor MySQL.
+;  The setup installs the app with its own Java and its own MySQL server, plus
+;  the source code and the SQL scripts in a "source" folder, so a marker needs
+;  neither Java nor MySQL. The data lives in %LOCALAPPDATA%\Azani ISP.
 ; ============================================================================
 
 #define AppName    "Azani ISP"
@@ -59,3 +60,13 @@ Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExe}"; Tasks: desktopico
 
 [Run]
 Filename: "{app}\{#AppExe}"; Description: "{cm:LaunchProgram,{#AppName}}"; Flags: nowait postinstall skipifsilent
+
+[UninstallRun]
+; Close the app, then its MySQL server, so their files can be removed.
+; azani-mysqld.exe is the renamed server: any other MySQL on the PC is left alone.
+Filename: "{sys}\taskkill.exe"; Parameters: "/F /IM ""{#AppExe}"""; Flags: runhidden; RunOnceId: "StopApp"
+Filename: "{sys}\taskkill.exe"; Parameters: "/F /IM azani-mysqld.exe"; Flags: runhidden; RunOnceId: "StopDatabase"
+
+[UninstallDelete]
+; The data the app made on first start (see db\LocalServer.java)
+Type: filesandordirs; Name: "{localappdata}\{#AppName}"
