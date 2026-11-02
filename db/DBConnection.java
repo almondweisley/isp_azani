@@ -14,6 +14,14 @@ public class DBConnection {
     // static final: loaded once when the class is first used
     private static final Properties CONFIG = load();
 
+    // Set by LocalServer when the installed app runs its own MySQL; it then replaces db.properties.
+    // volatile: LocalServer sets it on a background thread, the DAOs read it on others.
+    private static volatile Properties localServer;
+
+    static void useLocalServer(Properties settings) {
+        localServer = settings;
+    }
+
     private static Properties load() {
         Properties p = new Properties();
         // 1. Classpath: works when db.properties sits in the source root or a jar
@@ -39,9 +47,10 @@ public class DBConnection {
     }
 
     public static Connection getConnection() throws SQLException {
-        String url  = CONFIG.getProperty("db.url");
-        String user = CONFIG.getProperty("db.user");
-        String pass = CONFIG.getProperty("db.password");
+        Properties config = localServer != null ? localServer : CONFIG;
+        String url  = config.getProperty("db.url");
+        String user = config.getProperty("db.user");
+        String pass = config.getProperty("db.password");
 
         
         if (url == null || user == null || pass == null) {

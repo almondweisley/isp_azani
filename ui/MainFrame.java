@@ -1,5 +1,6 @@
 package ui;
 
+import db.LocalServer;
 import service.DashboardService;
 
 import javax.swing.*;
@@ -10,6 +11,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
 
 /**
@@ -375,7 +377,53 @@ public class MainFrame extends JFrame {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             Theme.install();                // must run BEFORE any component is created
-            new MainFrame().setVisible(true);
+            if (LocalServer.isBundled()) {
+                startLocalServerThenShow(); // the installed app: start its own MySQL first
+            } else {
+                new MainFrame().setVisible(true);   // run from source: db.properties
+            }
         });
+    }
+
+    /** A small window says what is happening while the app's own MySQL starts, which takes a few seconds. */
+    private static void startLocalServerThenShow() {
+        JLabel message = new JLabel("Starting the database, please wait…");
+        message.setFont(Theme.BODY);
+        message.setForeground(Theme.TEXT);
+        JPanel box = new JPanel(new BorderLayout());
+        box.setBackground(Theme.WHITE);
+        box.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createMatteBorder(4, 1, 1, 1, Theme.STRIPE_TEAL),
+                BorderFactory.createEmptyBorder(24, 32, 24, 32)));
+        box.add(message);
+        JWindow splash = new JWindow();
+        splash.setContentPane(box);
+        splash.pack();
+        splash.setLocationRelativeTo(null);
+        splash.setVisible(true);
+
+        new SwingWorker<Void, Void>() {
+            @Override
+            protected Void doInBackground() throws Exception {
+                LocalServer.start();         // background thread: the splash keeps painting
+                return null;
+            }
+
+            @Override
+            protected void done() {          // back on the Event Dispatch Thread
+                splash.dispose();
+                try {
+                    get();                   // rethrows anything start() threw
+                    new MainFrame().setVisible(true);
+                } catch (ExecutionException ex) {
+                    JOptionPane.showMessageDialog(null,
+                            "Azani ISP could not open.\n\n" + ex.getCause().getMessage(),
+                            "Azani ISP", JOptionPane.ERROR_MESSAGE);
+                    System.exit(1);
+                } catch (InterruptedException ex) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+        }.execute();
     }
 }
