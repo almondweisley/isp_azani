@@ -3,3 +3,6 @@
 /.gitignore
 /.env
 /db.properties
+# build.bat output: the jar inside holds db.properties, so it must never reach GitHub
+/build/
+/dist/
